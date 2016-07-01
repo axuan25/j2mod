@@ -17,6 +17,7 @@ package com.ghgande.j2mod.modbus.net;
 
 import com.ghgande.j2mod.modbus.Modbus;
 import com.ghgande.j2mod.modbus.io.AbstractModbusTransport;
+import com.ghgande.j2mod.modbus.io.ModbusRTUTCPTransport;
 import com.ghgande.j2mod.modbus.io.ModbusTCPTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,12 +68,20 @@ public class TCPMasterConnection {
      * Prepares the associated <tt>ModbusTransport</tt> of this
      * <tt>TCPMasterConnection</tt> for use.
      *
+     * @param useRtuOverTcp True if the RTU protocol should be used over TCP
+     *
      * @throws IOException if an I/O related error occurs.
      */
-    private void prepareTransport() throws IOException {
+    private void prepareTransport(boolean useRtuOverTcp) throws IOException {
         if (transport == null) {
-            logger.trace("prepareTransport() -> using standard TCP transport.");
-            transport = new ModbusTCPTransport(socket);
+            if (useRtuOverTcp) {
+                logger.trace("prepareTransport() -> using RTU over TCP transport.");
+                transport = new ModbusRTUTCPTransport(socket);
+            }
+            else {
+                logger.trace("prepareTransport() -> using standard TCP transport.");
+                transport = new ModbusTCPTransport(socket);
+            }
         }
         else {
             logger.trace("prepareTransport() -> using custom transport: {}", transport.getClass().getSimpleName());
@@ -86,6 +95,17 @@ public class TCPMasterConnection {
      * @throws Exception if there is a network failure.
      */
     public synchronized void connect() throws Exception {
+        connect(false);
+    }
+
+    /**
+     * Opens this <tt>TCPMasterConnection</tt>.
+     *
+     * @param useRtuOverTcp True if the RTU protocol should be used over TCP
+     *
+     * @throws Exception if there is a network failure.
+     */
+    public synchronized void connect(boolean useRtuOverTcp) throws Exception {
         if (!isConnected()) {
             logger.debug("connect()");
 
@@ -95,7 +115,7 @@ public class TCPMasterConnection {
             socket.setKeepAlive(true);
 
             setTimeout(timeout);
-            prepareTransport();
+            prepareTransport(useRtuOverTcp);
 
             connected = true;
         }
@@ -111,9 +131,11 @@ public class TCPMasterConnection {
             if (!socket.isConnected() || socket.isClosed() || socket.isInputShutdown() || socket.isOutputShutdown()) {
                 try {
                     socket.close();
-                } catch (IOException e) {
+                }
+                catch (IOException e) {
                     logger.error("Socket exception", e);
-                } finally {
+                }
+                finally {
                     connected = false;
                 }
             }
@@ -161,12 +183,17 @@ public class TCPMasterConnection {
         if (connected) {
             try {
                 transport.close();
-            } catch (IOException ex) {
+            }
+            catch (IOException ex) {
                 logger.debug("close()", ex);
-            } finally {
+            }
+            finally {
                 connected = false;
             }
         }
+
+        // Just in case users open it with a different protocol second time round (RTU over TCP)
+        transport = null;
     }
 
     /**

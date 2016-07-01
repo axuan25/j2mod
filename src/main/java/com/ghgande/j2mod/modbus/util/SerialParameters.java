@@ -269,7 +269,7 @@ public class SerialParameters {
      * @param databits the new number of data bits as <tt>String</tt>.
      */
     public void setDatabits(String databits) {
-        if (databits != null && !databits.isEmpty()) {
+        if (!ModbusUtil.isBlank(databits) && databits.matches("[0-9]+")) {
             this.databits = Integer.parseInt(databits);
         }
         else {
@@ -310,13 +310,13 @@ public class SerialParameters {
      * @param stopbits the number of stop bits as <tt>String</tt>.
      */
     public void setStopbits(String stopbits) {
-        if (stopbits.equals("1")) {
+        if (ModbusUtil.isBlank(stopbits) || stopbits.equals("1")) {
             this.stopbits = SerialPort.ONE_STOP_BIT;
         }
-        if (stopbits.equals("1.5")) {
+        else if (stopbits.equals("1.5")) {
             this.stopbits = SerialPort.ONE_POINT_FIVE_STOP_BITS;
         }
-        if (stopbits.equals("2")) {
+        else if (stopbits.equals("2")) {
             this.stopbits = SerialPort.TWO_STOP_BITS;
         }
     }
@@ -364,21 +364,23 @@ public class SerialParameters {
      * @param parity the new parity schema as <tt>String</tt>.
      */
     public void setParity(String parity) {
-        parity = parity.toLowerCase();
-        if (parity.equals("none")) {
+        if (ModbusUtil.isBlank(parity) || parity.equalsIgnoreCase("none")) {
             this.parity = SerialPort.NO_PARITY;
         }
-        if (parity.equals("even")) {
+        else if (parity.equalsIgnoreCase("even")) {
             this.parity = SerialPort.EVEN_PARITY;
         }
-        if (parity.equals("odd")) {
+        else if (parity.equalsIgnoreCase("odd")) {
             this.parity = SerialPort.ODD_PARITY;
         }
-        if (parity.equals("mark")) {
+        else if (parity.equalsIgnoreCase("mark")) {
             this.parity = SerialPort.MARK_PARITY;
         }
-        if (parity.equals("space")) {
+        else if (parity.equalsIgnoreCase("space")) {
             this.parity = SerialPort.SPACE_PARITY;
+        }
+        else {
+            this.parity = SerialPort.NO_PARITY;
         }
     }
 
@@ -421,15 +423,12 @@ public class SerialParameters {
      * Sets the encoding to be used.
      *
      * @param enc the encoding as string.
-     *
      * @see Modbus#SERIAL_ENCODING_ASCII
      * @see Modbus#SERIAL_ENCODING_RTU
      */
     public void setEncoding(String enc) {
-        enc = enc.toLowerCase();
-        if (enc.equals(Modbus.SERIAL_ENCODING_ASCII) ||
-                enc.equals(Modbus.SERIAL_ENCODING_RTU)
-                ) {
+        if (!ModbusUtil.isBlank(enc) &&
+                (enc.equalsIgnoreCase(Modbus.SERIAL_ENCODING_ASCII) || enc.equalsIgnoreCase(Modbus.SERIAL_ENCODING_RTU))) {
             encoding = enc;
         }
         else {
@@ -460,24 +459,22 @@ public class SerialParameters {
      * <tt>int</tt> which is defined in SerialPort.
      *
      * @param flowcontrol the <tt>String</tt> describing the flow control type.
-     *
      * @return the <tt>int</tt> describing the flow control type.
      */
     private int stringToFlow(String flowcontrol) {
-        flowcontrol = flowcontrol.toLowerCase();
-        if (flowcontrol.equals("none")) {
+        if (ModbusUtil.isBlank(flowcontrol) || flowcontrol.equalsIgnoreCase("none")) {
             return SerialPort.FLOW_CONTROL_DISABLED;
         }
-        if (flowcontrol.equals("xon/xoff out")) {
+        else if (flowcontrol.equalsIgnoreCase("xon/xoff out")) {
             return SerialPort.FLOW_CONTROL_XONXOFF_OUT_ENABLED;
         }
-        if (flowcontrol.equals("xon/xoff in")) {
+        else if (flowcontrol.equalsIgnoreCase("xon/xoff in")) {
             return SerialPort.FLOW_CONTROL_XONXOFF_IN_ENABLED;
         }
-        if (flowcontrol.equals("rts/cts")) {
+        else if (flowcontrol.equalsIgnoreCase("rts/cts")) {
             return SerialPort.FLOW_CONTROL_CTS_ENABLED | SerialPort.FLOW_CONTROL_RTS_ENABLED;
         }
-        if (flowcontrol.equals("dsr/dtr")) {
+        else if (flowcontrol.equalsIgnoreCase("dsr/dtr")) {
             return SerialPort.FLOW_CONTROL_DSR_ENABLED | SerialPort.FLOW_CONTROL_DTR_ENABLED;
         }
         return SerialPort.FLOW_CONTROL_DISABLED;
@@ -489,7 +486,6 @@ public class SerialParameters {
      *
      * @param flowcontrol the <tt>int</tt> describing the
      *                    flow control type.
-     *
      * @return the <tt>String</tt> describing the flow control type.
      */
     private String flowToString(int flowcontrol) {

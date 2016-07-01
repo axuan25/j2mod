@@ -32,3 +32,4 @@ multi-register request by working out the 'distance' between registers and creat
 # Known Issues
 
 * The jSerialComm has some oddities with regards to Thread.sleep() calls that slowdown operation of the comms port. Every port open call incurs a 500ms delay and every settings change (baud rate, stop bit etc.) to an open port incurs a 200ms delay
+* There are no unit tests for the RTU over TCP transport

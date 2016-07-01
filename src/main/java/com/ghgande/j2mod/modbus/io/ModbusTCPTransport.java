@@ -50,6 +50,9 @@ public class ModbusTCPTransport extends AbstractModbusTransport {
     protected TCPMasterConnection master = null;
     protected boolean headless = false; // Some TCP implementations are.
 
+    /**
+     * Default constructor
+     */
     public ModbusTCPTransport() {
     }
 
@@ -97,6 +100,15 @@ public class ModbusTCPTransport extends AbstractModbusTransport {
         headless = true;
     }
 
+    /**
+     * Set the transport to be headless
+     *
+     * @param headless True if headless
+     */
+    public void setHeadless(boolean headless) {
+        this.headless = headless;
+    }
+
     @Override
     public void setTimeout(int time) {
         super.setTimeout(time);
@@ -129,6 +141,22 @@ public class ModbusTCPTransport extends AbstractModbusTransport {
 
     @Override
     public void writeMessage(ModbusMessage msg) throws ModbusIOException {
+        writeMessage(msg, false);
+    }
+
+    /**
+     * Writes a <tt<ModbusMessage</tt> to the
+     * output stream of this <tt>ModbusTransport</tt>.
+     * <p>
+     *
+     * @param msg           a <tt>ModbusMessage</tt>.
+     * @param useRtuOverTcp True if the RTU protocol should be used over TCP
+     *
+     * @throws ModbusIOException data cannot be
+     *                           written properly to the raw output stream of
+     *                           this <tt>ModbusTransport</tt>.
+     */
+    protected void writeMessage(ModbusMessage msg, boolean useRtuOverTcp) throws ModbusIOException {
         try {
             byte message[] = msg.getMessage();
 
@@ -142,6 +170,14 @@ public class ModbusTCPTransport extends AbstractModbusTransport {
             byteOutputStream.writeByte(msg.getFunctionCode());
             if (message != null && message.length > 0) {
                 byteOutputStream.write(message);
+            }
+
+            // Add CRC for RTU over TCP
+            if (useRtuOverTcp) {
+                int len = byteOutputStream.size();
+                int[] crc = ModbusUtil.calculateCRC(byteOutputStream.getBuffer(), 0, len);
+                byteOutputStream.writeByte(crc[0]);
+                byteOutputStream.writeByte(crc[1]);
             }
 
             dataOutputStream.write(byteOutputStream.toByteArray());

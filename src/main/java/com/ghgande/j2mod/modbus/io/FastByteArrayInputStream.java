@@ -120,7 +120,9 @@ public class FastByteArrayInputStream extends InputStream {
         return count - pos;
     }
 
-    public int getCount() { return count; }
+    public int getCount() {
+        return count;
+    }
 
     public void mark(int readlimit) {
         logger.debug("mark()");

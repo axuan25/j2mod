@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Helper class that provides utility methods.
@@ -484,5 +485,25 @@ public final class ModbusUtil {
         }
 
         return crc;
+    }
+
+    /**
+     * Return true if the string is null or empty
+     *
+     * @param value String to check
+     * @return True if the value is blank or empty
+     */
+    public static boolean isBlank(String value) {
+        return value == null || value.isEmpty();
+    }
+
+    /**
+     * Return true if the list is null or empty
+     *
+     * @param list List to check
+     * @return True if the list is blank or empty
+     */
+    public static boolean isBlank(List<Object> list) {
+        return list == null || list.isEmpty();
     }
 }
